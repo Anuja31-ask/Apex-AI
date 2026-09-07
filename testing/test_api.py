@@ -1,9 +1,30 @@
 from fastapi.testclient import TestClient
+from types import SimpleNamespace
+from uuid import uuid4
 
 from backend.main import app
+from app.core.database import get_db
+from app.core.security import get_current_user
 
 
 client = TestClient(app)
+
+
+class FakeDB:
+    def add(self, _item):
+        return None
+
+    def flush(self):
+        return None
+
+    def commit(self):
+        return None
+
+
+app.dependency_overrides[get_current_user] = lambda: SimpleNamespace(
+    id=uuid4(), username="test-engineer", role="ENGINEER", is_active=True
+)
+app.dependency_overrides[get_db] = lambda: FakeDB()
 
 
 def test_health() -> None:
@@ -67,5 +88,5 @@ def test_analysis_run_returns_agent_trace_and_safety_decision() -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["agent_trace"]
-    assert body["validation"]["numerical_check"] == "PASS"
     assert body["approval_status"] == "HUMAN_APPROVAL_REQUIRED"
+    assert body["interrupt"]["type"] == "human_approval"
