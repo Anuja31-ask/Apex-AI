@@ -5,7 +5,8 @@ fastapi
 uvicorn
 neo4j
 pytest
-reportlab
 langgraph
 langchain-core
 langchain-ollama
+requests
+pydantic
