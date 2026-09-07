@@ -171,9 +171,27 @@ def download_report() -> FileResponse:
 @app.post("/analysis/run")
 def analysis_run(request: QueryRequest, asset_id: str = "P-101") -> dict:
     workflow = build_workflow(UnifiedContext(knowledge_base(), _asset_graph))
-    result = workflow.invoke({"user_query": request.query, "asset_id": asset_id})
+    thread_id = f"APR-{uuid4().hex[:10].upper()}"
+    result = workflow.invoke(
+        {"user_query": request.query, "asset_id": asset_id},
+        config={"configurable": {"thread_id": thread_id}},
+    )
     if result.get("error"):
         raise HTTPException(status_code=422, detail=result["error"])
+    if result.get("__interrupt__"):
+        interrupt_value = result["__interrupt__"][0].value
+        approval_id = _create_approval(
+            {"asset_id": asset_id, "risk": "HIGH", "approval_status": "HUMAN_APPROVAL_REQUIRED"},
+            thread_id,
+        )
+        return {
+            "asset_id": asset_id,
+            "approval_id": approval_id,
+            "thread_id": thread_id,
+            "approval_status": "HUMAN_APPROVAL_REQUIRED",
+            "interrupt": interrupt_value,
+            "agent_trace": result.get("agent_trace", []),
+        }
     report_path = Path(__file__).parents[1] / "reports" / "generated" / "APEX_AI_Industrial_Diagnostic_Report.pdf"
     from reports.generator import generate_report
 
@@ -194,12 +212,12 @@ def analysis_run(request: QueryRequest, asset_id: str = "P-101") -> dict:
         "agent_trace": result["agent_trace"],
         "report": str(report_path),
         "model_used": result["model_used"],
-        "approval_id": _create_approval(result),
+        "approval_id": _create_approval(result, thread_id),
     }
 
 
-def _create_approval(result: dict) -> str:
-    approval_id = f"APR-{uuid4().hex[:10].upper()}"
+def _create_approval(result: dict, approval_id: str | None = None) -> str:
+    approval_id = approval_id or f"APR-{uuid4().hex[:10].upper()}"
     _approval_requests[approval_id] = {
         "approval_id": approval_id,
         "asset_id": result["asset_id"],

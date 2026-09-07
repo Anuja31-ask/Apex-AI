@@ -69,6 +69,7 @@ def test_analysis_run_returns_agent_trace_and_safety_decision() -> None:
     assert body["agent_trace"]
     assert body["approval_status"] == "HUMAN_APPROVAL_REQUIRED"
     assert body["interrupt"]["type"] == "human_approval"
+    assert body["interrupt"]["type"] == "human_approval"
 
 
 def test_demo_login_upload_and_approval_flow() -> None:

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 from pathlib import Path
 
 from langgraph.graph import END, START, StateGraph
@@ -13,7 +14,9 @@ from .state import AnalysisState
 
 _checkpoint_path = Path(__file__).parents[1] / "data" / "apex_checkpoints.sqlite"
 _checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
-_checkpointer = SqliteSaver.from_conn_string(str(_checkpoint_path))
+_checkpoint_connection = sqlite3.connect(str(_checkpoint_path), check_same_thread=False)
+_checkpointer = SqliteSaver(_checkpoint_connection)
+_checkpointer.setup()
 
 
 def build_workflow(context_service: UnifiedContext):

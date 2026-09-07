@@ -1,3 +1,8 @@
+import os
+
+os.environ.setdefault("DATABASE_URL", "sqlite:///./test_refineshield.db")
+os.environ.setdefault("SECRET_KEY", "test-secret-key")
+
 from fastapi.testclient import TestClient
 from types import SimpleNamespace
 from uuid import uuid4
