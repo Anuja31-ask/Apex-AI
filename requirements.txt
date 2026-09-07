@@ -8,3 +8,4 @@ pytest
 reportlab
 langgraph
 langchain-core
+langchain-ollama
