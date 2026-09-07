@@ -5,3 +5,6 @@ fastapi
 uvicorn
 neo4j
 pytest
+langgraph
+langchain-core
+langchain-ollama
