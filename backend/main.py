@@ -6,12 +6,14 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
 from integration.mock_internal_api import get_asset, get_maintenance, get_sensor
+from graph.asset_graph import AssetGraph
 from rag.pipeline import KnowledgeBase
 
 
 app = FastAPI(title="APEX-AI Member 4 Services", version="0.1.0")
 _documents_dir = Path(__file__).parents[1] / "data" / "documents"
 _knowledge_base: KnowledgeBase | None = None
+_asset_graph = AssetGraph()
 
 
 class QueryRequest(BaseModel):
@@ -58,3 +60,17 @@ def maintenance(asset_id: str) -> dict:
 @app.get("/internal/sensors/{asset_id}")
 def sensor(asset_id: str) -> dict:
     return get_sensor(asset_id)
+
+
+@app.get("/graph/assets/{asset_id}")
+def graph_asset(asset_id: str) -> dict:
+    return _asset_graph.summary(asset_id)
+
+
+@app.get("/graph/assets/{asset_id}/relationships/{relationship}")
+def graph_relationship(asset_id: str, relationship: str) -> dict:
+    return {
+        "asset_id": asset_id,
+        "relationship": relationship.upper(),
+        "results": _asset_graph.related(asset_id, relationship),
+    }

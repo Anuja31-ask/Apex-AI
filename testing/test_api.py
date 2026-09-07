@@ -26,3 +26,10 @@ def test_mock_asset_api_is_read_only_contract() -> None:
     assert response.status_code == 200
     assert response.json()["asset_id"] == "P-101"
     assert response.json()["access"].startswith("read-only")
+
+
+def test_graph_api_returns_asset_relationships() -> None:
+    response = client.get("/graph/assets/P101")
+    assert response.status_code == 200
+    assert response.json()["backend"] == "memory"
+    assert response.json()["relationship_count"] == 3

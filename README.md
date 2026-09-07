@@ -11,6 +11,8 @@ report/integration support for the Pump P-101 demonstration.
 - Qdrant runs in memory by default, so development does not depend on another
 	member's backend or a database credential.
 - A standalone FastAPI adapter exposes the retrieval and mock internal APIs.
+- A local asset graph fallback and optional Neo4j adapter expose P-101
+  relationships.
 - Quarantined documents are excluded from authoritative retrieval.
 - Focused RAG and API tests pass.
 
@@ -38,6 +40,7 @@ Then test:
 Invoke-RestMethod http://127.0.0.1:8000/health
 Invoke-RestMethod -Method Post http://127.0.0.1:8000/query -ContentType 'application/json' -Body '{"query":"What vibration was observed in P-101?"}'
 Invoke-RestMethod http://127.0.0.1:8000/internal/assets/P101
+Invoke-RestMethod http://127.0.0.1:8000/graph/assets/P101
 ```
 
 API contract:
@@ -47,6 +50,8 @@ API contract:
 - `GET /internal/assets/P101`
 - `GET /internal/maintenance/P101`
 - `GET /internal/sensors/P101`
+- `GET /graph/assets/P101`
+- `GET /graph/assets/P101/relationships/DRIVEN_BY`
 
 The internal endpoints contain synthetic, read-only data. They are placeholders
 for authorized enterprise adapters and are not MRPL SAP/DCS integrations.
@@ -61,6 +66,10 @@ QDRANT_URL=http://localhost:6333
 ```
 
 The later Neo4j phase will use the reserved `NEO4J_*` variables in `.env`.
+
+To use the graph in Neo4j, start the container, set the `NEO4J_*` variables,
+run `python -m graph.seed`, and restart the API. Without those variables, the
+same graph queries use the local fallback.
 
 ## Coordination needed
 
