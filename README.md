@@ -13,6 +13,9 @@ report/integration support for the Pump P-101 demonstration.
 - A standalone FastAPI adapter exposes the retrieval and mock internal APIs.
 - A local asset graph fallback and optional Neo4j adapter expose P-101
   relationships.
+- Unified analysis context, PDF report generation, and JSONL audit events are
+	implemented independently of the AI and team backend.
+- A LangGraph planner-to-report workflow is implemented at `POST /analysis/run`.
 - Quarantined documents are excluded from authoritative retrieval.
 - Focused RAG and API tests pass.
 
@@ -52,6 +55,9 @@ API contract:
 - `GET /internal/sensors/P101`
 - `GET /graph/assets/P101`
 - `GET /graph/assets/P101/relationships/DRIVEN_BY`
+- `POST /analysis/context?asset_id=P101`
+- `POST /reports/diagnostic`
+- `POST /analysis/run?asset_id=P101`
 
 The internal endpoints contain synthetic, read-only data. They are placeholders
 for authorized enterprise adapters and are not MRPL SAP/DCS integrations.
@@ -70,6 +76,40 @@ The later Neo4j phase will use the reserved `NEO4J_*` variables in `.env`.
 To use the graph in Neo4j, start the container, set the `NEO4J_*` variables,
 run `python -m graph.seed`, and restart the API. Without those variables, the
 same graph queries use the local fallback.
+
+## LangGraph analysis workflow
+
+The current local workflow is:
+
+```text
+Planner -> Retrieval -> Evidence Analyst -> Validator
+				-> Safety Governor -> Report Preparation
+```
+
+Run the complete demonstration without a separate backend or model server:
+
+```powershell
+& ".venv/Scripts/python.exe" -m ai.run_demo
+```
+
+Or call the API after starting Uvicorn:
+
+```powershell
+Invoke-RestMethod -Method Post `
+	"http://127.0.0.1:8000/analysis/run?asset_id=P101" `
+	-ContentType "application/json" `
+	-Body '{"query":"Analyze P-101 vibration and identify related assets."}'
+```
+
+The response includes the planner output, findings, evidence validation, safety
+decision, agent trace, and report path. The demonstration returns
+`HUMAN_APPROVAL_REQUIRED` because 8.2 mm/s exceeds the 7.1 mm/s demonstration
+threshold. It never controls physical equipment.
+
+The current analyst is a deterministic local evidence analyst so the complete
+workflow is reliable offline. The Qwen2.5-VL-7B-Instruct adapter can replace
+that node after the team supplies the local model path and confirms available
+GPU/CPU resources. The validator and safety governor must remain deterministic.
 
 ## Coordination needed
 

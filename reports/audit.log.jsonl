@@ -1,0 +1,29 @@
+{"timestamp": "2026-09-07T06:33:29.760545+00:00", "event_type": "RAG_QUERY", "query": "What vibration was observed in P-101?", "source_count": 5}
+{"timestamp": "2026-09-07T06:33:29.791061+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "03_P101_Maintenance_History.pdf", "page": 1}
+{"timestamp": "2026-09-07T06:33:29.791735+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "04_P101_SOP.pdf", "page": 1}
+{"timestamp": "2026-09-07T06:33:29.792325+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "02_P101_Equipment_Manual.pdf", "page": 1}
+{"timestamp": "2026-09-07T06:33:29.792904+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "01_P101_Inspection_Report.pdf", "page": 1}
+{"timestamp": "2026-09-07T06:33:29.793573+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "06_Vibration_Guidelines.pdf", "page": 1}
+{"timestamp": "2026-09-07T06:33:29.811902+00:00", "event_type": "GRAPH_QUERY", "asset_id": "P-101", "relationship_count": 3}
+{"timestamp": "2026-09-07T06:33:29.832489+00:00", "event_type": "AGENT_CONTEXT_CREATED", "asset_id": "P-101", "source_count": 5}
+{"timestamp": "2026-09-07T06:33:29.846093+00:00", "event_type": "REPORT_GENERATED", "path": "C:\\Users\\SHUBHAM UGALE\\Documents\\ASEP\\SY-Documents\\SKILL\\Palcement_related\\APEX-AI\\reports\\generated\\APEX_AI_Industrial_Diagnostic_Report.pdf", "asset_id": "P-101"}
+{"timestamp": "2026-09-07T09:35:39.244658+00:00", "event_type": "RAG_QUERY", "query": "What vibration was observed in P-101?", "source_count": 5}
+{"timestamp": "2026-09-07T09:35:39.246258+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "03_P101_Maintenance_History.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:35:39.246981+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "04_P101_SOP.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:35:39.247526+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "02_P101_Equipment_Manual.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:35:39.247990+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "01_P101_Inspection_Report.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:35:39.248485+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "06_Vibration_Guidelines.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:35:39.265094+00:00", "event_type": "GRAPH_QUERY", "asset_id": "P-101", "relationship_count": 3}
+{"timestamp": "2026-09-07T09:35:39.292031+00:00", "event_type": "AGENT_CONTEXT_CREATED", "asset_id": "P-101", "source_count": 5}
+{"timestamp": "2026-09-07T09:35:39.307664+00:00", "event_type": "REPORT_GENERATED", "path": "C:\\Users\\SHUBHAM UGALE\\Documents\\ASEP\\SY-Documents\\SKILL\\Palcement_related\\APEX-AI\\reports\\generated\\APEX_AI_Industrial_Diagnostic_Report.pdf", "asset_id": "P-101"}
+{"timestamp": "2026-09-07T09:35:39.383182+00:00", "event_type": "ANALYSIS_COMPLETED", "asset_id": "P101", "risk": "HIGH", "approval_status": "HUMAN_APPROVAL_REQUIRED"}
+{"timestamp": "2026-09-07T09:36:45.901847+00:00", "event_type": "RAG_QUERY", "query": "What vibration was observed in P-101?", "source_count": 5}
+{"timestamp": "2026-09-07T09:36:45.902937+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "03_P101_Maintenance_History.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:36:45.903532+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "04_P101_SOP.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:36:45.904100+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "02_P101_Equipment_Manual.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:36:45.904631+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "01_P101_Inspection_Report.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:36:45.905093+00:00", "event_type": "DOCUMENT_RETRIEVED", "document": "06_Vibration_Guidelines.pdf", "page": 1}
+{"timestamp": "2026-09-07T09:36:45.921138+00:00", "event_type": "GRAPH_QUERY", "asset_id": "P-101", "relationship_count": 3}
+{"timestamp": "2026-09-07T09:36:45.949945+00:00", "event_type": "AGENT_CONTEXT_CREATED", "asset_id": "P-101", "source_count": 5}
+{"timestamp": "2026-09-07T09:36:45.964416+00:00", "event_type": "REPORT_GENERATED", "path": "C:\\Users\\SHUBHAM UGALE\\Documents\\ASEP\\SY-Documents\\SKILL\\Palcement_related\\APEX-AI\\reports\\generated\\APEX_AI_Industrial_Diagnostic_Report.pdf", "asset_id": "P-101"}
+{"timestamp": "2026-09-07T09:36:46.055888+00:00", "event_type": "ANALYSIS_COMPLETED", "asset_id": "P101", "risk": "HIGH", "approval_status": "HUMAN_APPROVAL_REQUIRED"}

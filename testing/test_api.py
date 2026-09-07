@@ -33,3 +33,39 @@ def test_graph_api_returns_asset_relationships() -> None:
     assert response.status_code == 200
     assert response.json()["backend"] == "memory"
     assert response.json()["relationship_count"] == 3
+
+
+def test_unified_context_api_returns_documents_and_graph() -> None:
+    response = client.post(
+        "/analysis/context?asset_id=P101",
+        json={"query": "Analyze P-101 vibration and identify related assets."},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["sources"]
+    assert body["asset_relationships"]
+
+
+def test_report_api_returns_pdf() -> None:
+    response = client.post(
+        "/reports/diagnostic",
+        json={
+            "asset_id": "P-101",
+            "issue": "Abnormal vibration",
+            "sources": [{"document": "01_P101_Inspection_Report.pdf", "page": 1}],
+        },
+    )
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/pdf"
+
+
+def test_analysis_run_returns_agent_trace_and_safety_decision() -> None:
+    response = client.post(
+        "/analysis/run?asset_id=P101",
+        json={"query": "Analyze P-101 vibration and identify related assets."},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["agent_trace"]
+    assert body["validation"]["numerical_check"] == "PASS"
+    assert body["approval_status"] == "HUMAN_APPROVAL_REQUIRED"
