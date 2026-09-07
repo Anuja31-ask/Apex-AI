@@ -17,3 +17,5 @@ class AnalysisState(TypedDict, total=False):
     report_path: str
     model_used: str
     error: str
+    human_decision: str
+    human_decision: str

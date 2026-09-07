@@ -1,0 +1,12 @@
+# Additional packages required by the mounted APEX service
+qdrant-client
+sentence-transformers
+pypdf
+neo4j
+reportlab
+langgraph
+langgraph-checkpoint-sqlite
+langchain-core
+langchain-ollama
+python-multipart
+pytest

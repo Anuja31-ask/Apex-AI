@@ -1,5 +1,104 @@
 # APEX-AI Member 4 Workbench
 
+## RefineShield integration
+
+The real RefineShield FastAPI application is in `app/main.py`. It keeps the
+JWT/database authentication routes under `/auth` and mounts the complete APEX
+RAG, graph, agent, upload, frontend, approval, and report service under `/apex`.
+
+Run the integrated backend from this directory:
+
+```powershell
+& ".venv/Scripts/python.exe" -m uvicorn app.main:app --reload
+```
+
+Integrated URLs:
+
+- `http://127.0.0.1:8000/` - RefineShield health
+- `http://127.0.0.1:8000/docs` - combined API docs
+- `http://127.0.0.1:8000/auth/login` - real JWT login
+- `http://127.0.0.1:8000/apex/app/` - APEX frontend
+- `POST /apex/analysis/run?asset_id=P101` - LangGraph analysis
+- `POST /apex/documents/upload` - document trust metadata
+- `POST /apex/approvals/{approval_id}/approve` - approval decision
+
+The APEX sub-application remains independently testable through its existing
+tests. The integration tests in `testing/test_refineshield_integration.py`
+verify that RefineShield and APEX are available in one backend process.
+
+The integrated frontend includes both **Sign in** and **Create account** tabs.
+Registration calls RefineShield `/auth/register`; login calls `/auth/login` and
+stores only the returned access token in session storage. APEX requests send
+that token as a bearer credential.
+
+The original `venv` in this folder points to an unavailable Python 3.14
+installation. Recreate it with an installed Python version before team use:
+
+```powershell
+Remove-Item -Recurse -Force .\venv
+py -3.13 -m venv venv
+& ".\venv\Scripts\python.exe" -m pip install -r requirements.txt
+& ".\venv\Scripts\python.exe" -m pip install -r requirements-apex.txt
+```
+
+Set the database and JWT values from `.env.example` before starting the real
+RefineShield app. The mounted APEX service uses local in-memory Qdrant and the
+local asset-graph fallback by default; Docker Qdrant/Neo4j can be enabled later
+through `QDRANT_URL` and `NEO4J_*` variables.
+
+## LangGraph approval pause/resume
+
+High-risk analysis now pauses inside the LangGraph safety node with
+`langgraph.types.interrupt`. The checkpoint is persisted locally in
+`data/apex_checkpoints.sqlite` and the approval ID is also stored in the
+RefineShield PostgreSQL `audit_logs` table.
+
+The flow is:
+
+```text
+POST /apex/analysis/run
+	-> HUMAN_APPROVAL_REQUIRED + approval_id + thread_id + interrupt
+POST /apex/approvals/{approval_id}/approve
+	-> Command(resume="approve")
+	-> graph resumes and generates the report
+```
+
+Reject uses `Command(resume="reject")` and resumes the same checkpoint with a
+rejected final approval status. The safety node is intentionally re-executed on
+resume, which is normal LangGraph interrupt behavior. For multi-instance
+production deployment, replace the local SQLite saver with a shared
+PostgreSQL checkpointer package; PostgreSQL audit persistence is already active.
+
+## Real JWT/RBAC behavior
+
+The mounted APEX service uses RefineShield authentication rather than the old
+standalone demo login:
+
+1. Register or log in through `/auth/register` and `/auth/login`.
+2. Send `Authorization: Bearer <access_token>` to protected `/apex` routes.
+3. `ENGINEER` and `ADMIN` can upload and approve; viewers cannot.
+4. Uploaded files, versions, and approval events are stored through the
+	existing `documents`, `document_versions`, and `audit_logs` tables.
+
+## Qwen and OpenRouter
+
+OpenRouter can be used as a development-only Qwen provider through its
+OpenAI-compatible API, but it sends document content outside the air-gapped
+environment. That conflicts with the SIH sovereign-data claim, so the final
+demo should use local Qwen2.5-VL or a local inference server.
+
+If OpenRouter is used temporarily, use only synthetic documents and keep the
+key outside Git:
+
+```text
+OPENROUTER_API_KEY=<local-secret>
+OPENROUTER_MODEL=qwen/qwen2.5-vl-7b-instruct
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+```
+
+TrustGate, validation, RBAC, human approval, and safety rules remain local and
+deterministic even when the analyst model is remote.
+
 Member 4 owns the trusted knowledge layer, mock internal data adapters, and
 report/integration support for the Pump P-101 demonstration.
 
