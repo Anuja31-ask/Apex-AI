@@ -16,6 +16,8 @@ report/integration support for the Pump P-101 demonstration.
 - Unified analysis context, PDF report generation, and JSONL audit events are
 	implemented independently of the AI and team backend.
 - A LangGraph planner-to-report workflow is implemented at `POST /analysis/run`.
+- A standalone frontend is available at `/app/` for demo login, upload trust
+	results, agent trace, evidence, approval, and report download.
 - Quarantined documents are excluded from authoritative retrieval.
 - Focused RAG and API tests pass.
 
@@ -58,6 +60,12 @@ API contract:
 - `POST /analysis/context?asset_id=P101`
 - `POST /reports/diagnostic`
 - `POST /analysis/run?asset_id=P101`
+- `POST /auth/demo-login`
+- `POST /documents/upload`
+- `GET /approvals/{approval_id}`
+- `POST /approvals/{approval_id}/approve`
+- `POST /approvals/{approval_id}/reject`
+- `GET /reports/download`
 
 The internal endpoints contain synthetic, read-only data. They are placeholders
 for authorized enterprise adapters and are not MRPL SAP/DCS integrations.
@@ -110,6 +118,21 @@ The current analyst is a deterministic local evidence analyst so the complete
 workflow is reliable offline. The Qwen2.5-VL-7B-Instruct adapter can replace
 that node after the team supplies the local model path and confirms available
 GPU/CPU resources. The validator and safety governor must remain deterministic.
+
+## Standalone frontend demo
+
+Start the API:
+
+```powershell
+& ".venv/Scripts/python.exe" -m uvicorn backend.main:app --reload
+```
+
+Open `http://127.0.0.1:8000/app/` in a browser. The standalone UI uses demo
+authentication and in-memory approval state. It validates the product flow
+before the backend member integrates real JWT, RBAC, database persistence, and
+TrustGate decisions. Uploaded files receive a SHA-256 fingerprint and trust
+metadata; they are not automatically added to the seeded knowledge base until
+the real TrustGate ingestion path is connected.
 
 ## Coordination needed
 

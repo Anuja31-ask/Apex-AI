@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from hashlib import sha256
 from pathlib import Path
+from uuid import uuid4
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from integration.mock_internal_api import get_asset, get_maintenance, get_sensor
@@ -15,9 +19,18 @@ from ai.workflow import build_workflow
 
 
 app = FastAPI(title="APEX-AI Member 4 Services", version="0.1.0")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 _documents_dir = Path(__file__).parents[1] / "data" / "documents"
 _knowledge_base: KnowledgeBase | None = None
 _asset_graph = AssetGraph()
+_approval_requests: dict[str, dict] = {}
+_upload_dir = Path(__file__).parents[1] / "data" / "uploads"
 
 
 class QueryRequest(BaseModel):
@@ -41,6 +54,49 @@ def knowledge_base() -> KnowledgeBase:
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok", "service": "member4-rag"}
+
+
+@app.post("/auth/demo-login")
+def demo_login(username: str = Form(...), password: str = Form(...), role: str = Form("Engineer")) -> dict:
+    if not username or not password:
+        raise HTTPException(status_code=401, detail="Username and password are required")
+    if role not in {"Admin", "Engineer", "Operator", "Viewer"}:
+        raise HTTPException(status_code=400, detail="Invalid role")
+    record_event("LOGIN", username=username, role=role)
+    return {"token": f"demo-{uuid4()}", "username": username, "role": role}
+
+
+@app.post("/documents/upload")
+async def upload_document(
+    file: UploadFile = File(...),
+    source: str = Form("Synthetic demonstration"),
+    version: str = Form("1.0"),
+    classification: str = Form("Internal"),
+) -> dict:
+    allowed = {".pdf", ".png", ".jpg", ".jpeg", ".docx", ".xlsx"}
+    filename = Path(file.filename or "document").name
+    suffix = Path(filename).suffix.lower()
+    if suffix not in allowed:
+        raise HTTPException(status_code=415, detail="Unsupported document type")
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty document")
+    digest = sha256(content).hexdigest()
+    _upload_dir.mkdir(parents=True, exist_ok=True)
+    (_upload_dir / filename).write_bytes(content)
+    document_id = f"UPLOAD-{digest[:12].upper()}"
+    record_event("DOCUMENT_UPLOADED", document_id=document_id, filename=filename, sha256=digest)
+    return {
+        "document_id": document_id,
+        "filename": filename,
+        "sha256": digest,
+        "source": source,
+        "version": version,
+        "classification": classification,
+        "trust_score": 94,
+        "trust_status": "trusted",
+        "knowledge_base_status": "pending_approval",
+    }
 
 
 @app.post("/query", response_model=QueryResponse)
@@ -104,6 +160,14 @@ def diagnostic_report(result: dict) -> FileResponse:
     return FileResponse(output_path, media_type="application/pdf", filename=output_path.name)
 
 
+@app.get("/reports/download")
+def download_report() -> FileResponse:
+    output_path = Path(__file__).parents[1] / "reports" / "generated" / "APEX_AI_Industrial_Diagnostic_Report.pdf"
+    if not output_path.exists():
+        raise HTTPException(status_code=404, detail="Generate a report first")
+    return FileResponse(output_path, media_type="application/pdf", filename=output_path.name)
+
+
 @app.post("/analysis/run")
 def analysis_run(request: QueryRequest, asset_id: str = "P-101") -> dict:
     workflow = build_workflow(UnifiedContext(knowledge_base(), _asset_graph))
@@ -130,4 +194,38 @@ def analysis_run(request: QueryRequest, asset_id: str = "P-101") -> dict:
         "agent_trace": result["agent_trace"],
         "report": str(report_path),
         "model_used": result["model_used"],
+        "approval_id": _create_approval(result),
     }
+
+
+def _create_approval(result: dict) -> str:
+    approval_id = f"APR-{uuid4().hex[:10].upper()}"
+    _approval_requests[approval_id] = {
+        "approval_id": approval_id,
+        "asset_id": result["asset_id"],
+        "status": "PENDING" if result["approval_status"] == "HUMAN_APPROVAL_REQUIRED" else "NOT_REQUIRED",
+        "risk": result["risk"],
+    }
+    return approval_id
+
+
+@app.get("/approvals/{approval_id}")
+def approval_status(approval_id: str) -> dict:
+    if approval_id not in _approval_requests:
+        raise HTTPException(status_code=404, detail="Approval request not found")
+    return _approval_requests[approval_id]
+
+
+@app.post("/approvals/{approval_id}/{decision}")
+def decide_approval(approval_id: str, decision: str, username: str = "demo-engineer") -> dict:
+    if approval_id not in _approval_requests:
+        raise HTTPException(status_code=404, detail="Approval request not found")
+    if decision not in {"approve", "reject"}:
+        raise HTTPException(status_code=400, detail="Decision must be approve or reject")
+    request = _approval_requests[approval_id]
+    request.update({"status": "APPROVED" if decision == "approve" else "REJECTED", "decided_by": username})
+    record_event("HUMAN_APPROVAL", approval_id=approval_id, decision=decision, username=username)
+    return request
+
+
+app.mount("/app", StaticFiles(directory=Path(__file__).parents[1] / "frontend", html=True), name="frontend")

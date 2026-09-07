@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>APEX-AI | Sovereign Workbench</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar"><div><span class="eyebrow">SOVEREIGN INDUSTRIAL AI</span><h1>APEX-AI</h1></div><span id="session" class="status">Signed out</span></header>
+    <section id="login" class="panel login-panel">
+      <span class="eyebrow">SECURE ACCESS</span><h2>Enter the workbench</h2>
+      <div class="auth-tabs"><button type="button" id="show-login" class="tab active">Sign in</button><button type="button" id="show-register" class="tab">Create account</button></div>
+      <form id="login-form"><label>Username<input name="username" autocomplete="username" required></label><label>Password<input name="password" type="password" autocomplete="current-password" required></label><button>Sign in</button></form>
+      <form id="register-form" hidden><label>Username<input name="username" autocomplete="username" required></label><label>Email<input name="email" type="email" autocomplete="email" required></label><label>Password<input name="password" type="password" autocomplete="new-password" minlength="8" required></label><label>Role<select name="role"><option value="ENGINEER">Engineer</option><option value="VIEWER">Viewer</option></select></label><button>Create account</button></form>
+    </section>
+    <section id="workbench" hidden>
+      <div class="hero"><div><span class="eyebrow">P-101 / UNIT A</span><h2>Inspection intelligence, under control.</h2><p>Upload trusted evidence, run the governed analysis, and keep every conclusion traceable.</p></div><div class="hero-stat"><strong id="system-state">LOCAL</strong><span>execution mode</span></div></div>
+      <div class="grid two">
+        <section class="panel"><div class="section-head"><div><span class="eyebrow">01 / TRUSTGATE</span><h3>Secure document intake</h3></div><span id="trust-badge" class="badge neutral">Awaiting file</span></div><form id="upload-form"><label>Inspection document<input id="file" type="file" accept=".pdf,.png,.jpg,.jpeg,.docx,.xlsx" required></label><div class="inline-fields"><label>Source<input name="source" value="Mechanical Maintenance"></label><label>Version<input name="version" value="1.0"></label></div><button type="submit">Scan document</button></form><div id="trust-result" class="result" hidden></div></section>
+        <section class="panel"><div class="section-head"><div><span class="eyebrow">02 / WORK REQUEST</span><h3>Agentic diagnosis</h3></div><span class="badge neutral">P-101</span></div><label>Question<textarea id="question">Analyze P-101 vibration and identify related assets.</textarea></label><button id="run" class="accent">Run governed analysis</button><p id="run-message" class="muted"></p></section>
+      </div>
+      <section id="analysis" class="panel" hidden><div class="section-head"><div><span class="eyebrow">03 / VERIFIED RESULT</span><h3 id="finding-title">Analysis</h3></div><span id="risk" class="badge danger">HIGH RISK</span></div><div class="grid three metrics"><div><span>Observed vibration</span><strong id="observed">—</strong></div><div><span>Threshold</span><strong id="threshold">—</strong></div><div><span>Model</span><strong id="model">—</strong></div></div><div class="analysis-grid"><div><h4>Agent trace</h4><ol id="trace" class="trace"></ol></div><div><h4>Evidence</h4><div id="evidence" class="evidence"></div></div><div><h4>Asset graph</h4><div id="assets" class="evidence"></div></div></div><div class="approval"><div><span class="eyebrow">SAFETY GOVERNOR</span><h3 id="approval-text">Human approval required</h3><p>Critical recommendations never execute automatically.</p></div><div class="actions"><button id="approve" class="approve">Approve</button><button id="reject" class="reject">Reject</button></div></div><a id="report" class="download" target="_blank" hidden>Download verified report</a></section>
+    </section>
+    <div id="toast" class="toast"></div>
+  </main><script src="app.js"></script>
+</body></html>

@@ -1,11 +1,19 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from langgraph.graph import END, START, StateGraph
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from rag.unified_context import UnifiedContext
 
 from .nodes import analyst_node, planner_node, report_node, retrieval_node, safety_node, validator_node
 from .state import AnalysisState
+
+
+_checkpoint_path = Path(__file__).parents[1] / "data" / "apex_checkpoints.sqlite"
+_checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
+_checkpointer = SqliteSaver.from_conn_string(str(_checkpoint_path))
 
 
 def build_workflow(context_service: UnifiedContext):
@@ -25,4 +33,4 @@ def build_workflow(context_service: UnifiedContext):
     graph.add_edge("validator", "safety_governor")
     graph.add_edge("safety_governor", "report")
     graph.add_edge("report", END)
-    return graph.compile()
+    return graph.compile(checkpointer=_checkpointer)

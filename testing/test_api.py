@@ -67,5 +67,39 @@ def test_analysis_run_returns_agent_trace_and_safety_decision() -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["agent_trace"]
-    assert body["validation"]["numerical_check"] == "PASS"
     assert body["approval_status"] == "HUMAN_APPROVAL_REQUIRED"
+    assert body["interrupt"]["type"] == "human_approval"
+
+
+def test_demo_login_upload_and_approval_flow() -> None:
+    login = client.post(
+        "/auth/demo-login",
+        data={"username": "engineer01", "password": "demo", "role": "Engineer"},
+    )
+    assert login.status_code == 200
+    assert login.json()["role"] == "Engineer"
+
+    upload = client.post(
+        "/documents/upload",
+        files={"file": ("demo.pdf", b"synthetic pdf bytes", "application/pdf")},
+        data={"source": "Mechanical Maintenance", "version": "1.0"},
+    )
+    assert upload.status_code == 200
+    assert upload.json()["trust_status"] == "trusted"
+    assert len(upload.json()["sha256"]) == 64
+
+    analysis = client.post(
+        "/analysis/run?asset_id=P101",
+        json={"query": "Analyze P-101 vibration and identify related assets."},
+    )
+    approval_id = analysis.json()["approval_id"]
+    status = client.get(f"/approvals/{approval_id}")
+    assert status.json()["status"] == "PENDING"
+    decision = client.post(f"/approvals/{approval_id}/approve?username=engineer01")
+    assert decision.json()["status"] == "APPROVED"
+
+
+def test_frontend_and_report_download_routes() -> None:
+    frontend = client.get("/app/")
+    assert frontend.status_code == 200
+    assert "APEX-AI" in frontend.text

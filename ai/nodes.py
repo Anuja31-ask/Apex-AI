@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from langgraph.types import interrupt
 from rag.unified_context import UnifiedContext
 
 from .state import AnalysisState
@@ -95,7 +96,15 @@ def validator_node(state: AnalysisState) -> AnalysisState:
 def safety_node(state: AnalysisState) -> AnalysisState:
     _trace(state, "Safety Governor")
     if state.get("risk") == "HIGH":
-        state["approval_status"] = "HUMAN_APPROVAL_REQUIRED"
+        decision = interrupt({
+            "type": "human_approval",
+            "asset_id": state.get("asset_id", "P-101"),
+            "risk": "HIGH",
+            "recommendation": state.get("findings", {}).get("recommendation"),
+            "message": "Human approval is required before report delivery.",
+        })
+        state["human_decision"] = str(decision).lower()
+        state["approval_status"] = "APPROVED" if state["human_decision"] == "approve" else "REJECTED"
     else:
         state["approval_status"] = "REVIEW_REQUIRED"
     return state
